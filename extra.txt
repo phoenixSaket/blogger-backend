@@ -1,0 +1,5 @@
+====================================================
+Reset Sequence in SQLITE
+====================================================
+
+update sqlite_sequence SET SEQ = 1 WHERE NAME='user';
