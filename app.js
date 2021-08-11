@@ -1,4 +1,5 @@
 // Create express app
+var cors = require("cors");
 var express = require("express");
 var app = express();
 var db = require("./database.js");
@@ -6,6 +7,16 @@ var bodyParser = require("body-parser");
 var md5 = require("md5");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://localhost:3000/",
+      "localhost:3000",
+    ],
+  })
+);
 
 var lastID = 0;
 
@@ -74,38 +85,48 @@ app.post("/api/addUser", (req, res, err) => {
 });
 
 app.get("/api/getMaxID", (req, res, err) => {
-    let sql = "SELECT MAX(id) AS max from user;";
+  let sql = "SELECT MAX(id) AS max from user;";
 
-    db.get(sql, (err, result) => {
-        if(err) {
-            console.log("Error", err.message);
-            return res.status(400).json({"message" : err.message});
-        }
-        lastID = result.max;
-        return res.status(200).json({"message" : result.max});
-    })
+  db.get(sql, (err, result) => {
+    if (err) {
+      console.log("Error", err.message);
+      return res.status(400).json({ message: err.message });
+    }
+    lastID = result.max;
+    return res.status(200).json({ message: result.max });
+  });
 });
 
-app.post("/api/login", (req, res,err) => {
-    let username = req.body.user.username;
-    let password = req.body.user.password;
+app.post("/api/login", (req, res, err) => {
+  let username = req.body.user.username;
+  let password = req.body.user.password;
 
-    let sql = "SELECT password FROM user WHERE username = ?";
-    let params = [username];
-    let isValid = false;
+  let sql = "SELECT password,id FROM user WHERE username = ?";
+  let params = [username];
+  let isValid = false;
+  let id = 0;
 
-    db.get(sql, params, (err, result) => {
-        if(err) {
-            console.log("Error",err.message);
-            res.status(400).json({"message" : err.message});
-        }
+  db.get(sql, params, (err, result) => {
+    if (err) {
+      console.log("Error", err.message);
+      res.status(400).json({ message: err.message });
+      return;
+    }
 
-        if(md5(password) === result.password) {
-            isValid = true;
-        }
+    if (!!!result) {
+      console.log("Error", "Invalid username");
+      res.status(400).json({ message: "Invalid Username !" });
+      return;
+    }
 
-        res.status(200).json({"message" : isValid});
-    })
+    if (md5(password) === result.password) {
+      isValid = true;
+    }
+
+    id = result.id;
+
+    res.status(200).json({ message: isValid, id: id });
+  });
 });
 
 // Default response for any other request
