@@ -74,6 +74,7 @@ app.post("/api/addUser", (req, res, err) => {
 
   db.run(insert, params, (err, result) => {
     if (err) {
+      console.log("Error", err);
       res.status(400).json({ error: err.message });
       return;
     }
@@ -114,13 +115,17 @@ app.post("/api/login", (req, res, err) => {
     }
 
     if (!!!result) {
-      console.log("Error", "Invalid username");
-      res.status(400).json({ message: "Invalid Username !" });
+      console.log("Error", "Invalid credentials");
+      res.status(400).json({ message: "Invalid credentials !" });
       return;
     }
 
     if (md5(password) === result.password) {
       isValid = true;
+    } else {
+      console.log("Error", "Invalid Password");
+      res.status(400).json({ message: "Invalid Password !" });
+      return;
     }
 
     id = result.id;
