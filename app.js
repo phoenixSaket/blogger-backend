@@ -1,11 +1,12 @@
 // Create express app
-var cors = require("cors");
-var express = require("express");
-var app = express();
-var db = require("./database.js");
-var bodyParser = require("body-parser");
-var md5 = require("md5");
-app.use(bodyParser.urlencoded({ extended: false }));
+const cors = require("cors");
+const express = require("express");
+const app = express();
+const db = require("./database.js");
+const bodyParser = require("body-parser");
+const md5 = require("md5");
+const multer = require("multer");
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(
@@ -17,6 +18,19 @@ app.use(
     ],
   })
 );
+
+const DIR = "C:/Users/SaketV/Pictures/ImagesDirectory/";
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, DIR);
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage }).any();
 
 var lastID = 0;
 
@@ -131,6 +145,38 @@ app.post("/api/login", (req, res, err) => {
     id = result.id;
 
     res.status(200).json({ message: isValid, id: id });
+  });
+});
+
+app.post("/api/getUser", (req, res, err) => {
+  let id = req.body.id;
+
+  let sql = "SELECT * FROM user WHERE id = ?";
+  let params = [id];
+
+  db.get(sql, params, (err, result) => {
+    if (err) {
+      console.log("Error", err);
+      return res.status(400).json({ Error: err });
+    }
+
+    if (result) {
+      return res.status(200).json(result);
+    } else {
+      return res.status(200).json({ data: "No Result" });
+    }
+  });
+});
+
+app.post("/api/uploadImage", (req, res, err) => {
+  upload(req, res, (err) => {
+    if (err) {
+      console.log("Error", err);
+      return res.status(400).json({ message: "Error", Error : err });
+    }
+    console.log("Upload", req.files[0]);
+    let name = req.files[0].originalname;
+    return res.status(200).json({ message: "Success", filename: name });
   });
 });
 
