@@ -172,11 +172,102 @@ app.post("/api/uploadImage", (req, res, err) => {
   upload(req, res, (err) => {
     if (err) {
       console.log("Error", err);
-      return res.status(400).json({ message: "Error", Error : err });
+      return res.status(400).json({ message: "Error", Error: err });
     }
-    console.log("Upload", req.files[0]);
     let name = req.files[0].originalname;
     return res.status(200).json({ message: "Success", filename: name });
+  });
+});
+
+app.post("/api/addBlog", (req, res, err) => {
+  const data = req.body.data;
+  const { userId, title, subtitle, content, images, isPrivate, date, likes } =
+    data;
+
+  if (!userId || !title || !subtitle || !content || !date) {
+    return res.status(400).json({ Error: "Value Required" });
+  }
+  const sql =
+    "INSERT INTO blogs (userId, title, subtitle, content, images, isPrivate, date, likes) VALUES (?,?,?,?,?,?,?,?)";
+
+  let params = [
+    userId,
+    title,
+    subtitle,
+    content,
+    images,
+    isPrivate,
+    date,
+    likes,
+  ];
+
+  db.run(sql, params, (err) => {
+    if (err) {
+      console.log("Error : ", err);
+      return res.status(400).json({ Error: err });
+    }
+    return res.status(200).json({ Message: { success: true } });
+  });
+});
+
+app.post("/api/getBlogs", (req, res, err) => {
+  const id = req.body.id;
+
+  let sql = "SELECT * FROM blogs WHERE isPrivate = 0;";
+
+  let data = [];
+  db.all(sql, (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).json({ Error: err });
+    }
+
+    let noData = false;
+
+    if (result) {
+      data = result;
+    } else {
+      noData = true;
+    }
+
+    let sql = "SELECT * FROM blogs WHERE isPrivate = 1 AND userId = ?;";
+    let params = [id];
+
+    db.all(sql, params, (err, result) => {
+      if (err) {
+        console.log(err);
+        return res.status(400).json({ Error: err });
+      }
+
+      if (result) {
+        const privateData = result;
+        privateData.forEach((element) => {
+          data.push(privateData);
+        });
+        return res.status(200).json({ blogs: data });
+      } else {
+        if (noData) {
+          return res.status(200).json({ Message: "No data" });
+        } else {
+          return res.status(200).json({ blogs: data });
+        }
+      }
+    });
+  });
+});
+
+app.get("/api/getMaxBlogs/", (req, res, err) => {
+  const sql = "SELECT count(*) as max FROM blogs";
+
+  db.get(sql, (err, result) => {
+    if (err) {
+      console.log("Error", err);
+      return res.status(400).json({ Error: err });
+    }
+
+    if(result) {
+      return res.status(200).json({ Message: result.max});
+    }
   });
 });
 

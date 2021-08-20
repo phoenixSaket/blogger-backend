@@ -2,4 +2,5 @@
 Reset Sequence in SQLITE
 ====================================================
 
-update sqlite_sequence SET SEQ = 1 WHERE NAME='user';
+update sqlite_sequence SET SEQ = 0 WHERE NAME='user';
+update sqlite_sequence SET SEQ = 0 WHERE NAME='blogs';
