@@ -15,6 +15,9 @@ app.use(
       "http://localhost:3000",
       "https://localhost:3000/",
       "localhost:3000",
+      "http://localhost:4200",
+      "https://localhost:4200/",
+      "localhost:4200",
     ],
   })
 );
@@ -241,10 +244,10 @@ app.post("/api/getBlogs", (req, res, err) => {
 
       if (result) {
         const privateData = result;
-        privateData.forEach((element) => {
-          data.push(privateData);
-        });
-        return res.status(200).json({ blogs: data });
+        // privateData.forEach((element) => {
+        // data.push(privateData);
+        // });
+        return res.status(200).json({ blogs: data, privateBlogs: privateData });
       } else {
         if (noData) {
           return res.status(200).json({ Message: "No data" });
@@ -265,8 +268,8 @@ app.get("/api/getMaxBlogs/", (req, res, err) => {
       return res.status(400).json({ Error: err });
     }
 
-    if(result) {
-      return res.status(200).json({ Message: result.max});
+    if (result) {
+      return res.status(200).json({ Message: result.max });
     }
   });
 });
